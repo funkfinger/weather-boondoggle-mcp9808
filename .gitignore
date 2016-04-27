@@ -30,3 +30,4 @@
 .pioenvs
 .env
 settings.h
+.DS_Store
