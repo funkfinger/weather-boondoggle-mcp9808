@@ -59,23 +59,25 @@ void postValues(void) {
   else {
     Serial.println("dht read error");
   }
-  delay(60000);
+  // delay(60000);
 }
 
 void readTemp(void) {
   tempsensor.shutdown_wake(0);   // Don't remove this line! required before reading temp
+
+  // Read and print out the temperature, then convert to *F
   c = tempsensor.readTempC();
-  // f = c * 9.0 / 5.0 + 32;
-  f = (c * 1.8) + 32;
-  tempsensor.shutdown_wake(1); // shutdown MSP9808 - power consumption ~0.1 mikro Ampere
+  f = c * 9.0 / 5.0 + 32;
+  Serial.print("Temp: "); Serial.print(c); Serial.print("*C\t"); 
+  Serial.print(f); Serial.println("*F");
   delay(250);
+  
+  Serial.println("Shutdown MCP9808.... ");
+  tempsensor.shutdown_wake(1); // shutdown MSP9808 - power consumption ~0.1 mikro Ampere
 }
 
 void setupTempSensor(void) {
-  delay(100);
-  int started = 0;
-  started = tempsensor.begin(0x18);
-  if (!started) {
+  if (!tempsensor.begin()) {
     Serial.println("Couldn't find MCP9808!");
     while (1);
   }
@@ -133,7 +135,7 @@ void setupWifi(void) {
 
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println("Booting");
 
   setupWifi();
@@ -165,13 +167,17 @@ void setup() {
   delay(2000);
   ThingSpeak.begin(client);
   delay(100);
+  
+  readTemp();
+  postValues();
+  
 }
 
 int counter = 120;
 
 void loop() {
   counter++;
-  // 1200 * 100 - this should be about 2 min, but not sure how long ArduinoOTA.handle() takes...
+  // 120 * 2000 - this should be about 2 min, but not sure how long ArduinoOTA.handle() takes...
   readTemp();
   display.clear();
   display.setFont(Just_Another_Hand_Plain_48);
@@ -189,5 +195,5 @@ void loop() {
     counter = 0;
   }
   ArduinoOTA.handle();
-  delay(1000);
+  delay(2000);
 }
